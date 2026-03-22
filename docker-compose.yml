@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -11,10 +9,11 @@ services:
     volumes:
       - sqldata:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourPassword123! -Q 'SELECT 1' || exit 1"]
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-C", "-S", "localhost", "-U", "sa", "-P", "YourPassword123!", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 30
+      start_period: 45s
 
   backend:
     build:
@@ -23,13 +22,7 @@ services:
     ports:
       - "5000:80"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=db;Database=PortfolioDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;
-      - Jwt__Key=YourSuperSecretJwtKeyChangeInProduction123
-      - Jwt__Issuer=PortfolioApi
-      - Jwt__Audience=PortfolioClient
-      - AllowedOrigins=http://localhost:3000
-      - BaseUrl=http://localhost:5000
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=PortfolioDb_Local;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;Connection Timeout=30;
     depends_on:
       db:
         condition: service_healthy
@@ -40,8 +33,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
     depends_on:
       - backend
 

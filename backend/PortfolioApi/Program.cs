@@ -32,7 +32,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost;Database=PortfolioDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;";
+    ?? "Server=TIRU\\SQLEXPRESS;Database=PortfolioDb_Local;Trusted_Connection=True;TrustServerCertificate=True;";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -69,10 +69,38 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Initialize database with retry logic
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(db);
+    var maxRetries = 5;
+    var retryDelay = 2000; // milliseconds
+
+    for (int i = 0; i < maxRetries; i++)
+    {
+        try
+        {
+            Console.WriteLine($"Attempting database connection (attempt {i + 1}/{maxRetries})...");
+            await DbSeeder.SeedAsync(db);
+            Console.WriteLine("Database initialized successfully!");
+            break;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Database connection failed: {ex.Message}");
+            if (i < maxRetries - 1)
+            {
+                Console.WriteLine($"Retrying in {retryDelay}ms...");
+                await Task.Delay(retryDelay);
+                retryDelay = (int)(retryDelay * 1.5); // Exponential backoff
+            }
+            else
+            {
+                Console.WriteLine("Failed to initialize database after all retries.");
+                throw;
+            }
+        }
+    }
 }
 
 if (app.Environment.IsDevelopment())

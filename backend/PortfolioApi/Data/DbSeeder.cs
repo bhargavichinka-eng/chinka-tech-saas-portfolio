@@ -7,19 +7,22 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        await context.Database.EnsureCreatedAsync();
-
-        if (!await context.Users.AnyAsync())
+        try
         {
-            context.Users.Add(new User
+            // Ensure database is created with schema
+            await context.Database.EnsureCreatedAsync();
+            
+            if (!await context.Users.AnyAsync())
             {
-                Email = "admin@chinkatech.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                Role = "Admin"
-            });
-        }
+                context.Users.Add(new User
+                {
+                    Email = "admin@chinkatech.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+                    Role = "Admin"
+                });
+            }
 
-        if (!await context.Products.AnyAsync())
+            if (!await context.Products.AnyAsync())
         {
             context.Products.AddRange(
                 new Product { Name = "SaaS Starter Kit", Description = "A complete SaaS starter kit with multi-tenancy, billing, and admin.", TechStack = "Next.js, ASP.NET Core, SQL Server, Stripe", LiveUrl = "https://example.com", GithubUrl = "https://github.com/example/saas-starter" },
@@ -52,5 +55,11 @@ public static class DbSeeder
         }
 
         await context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error seeding database: {ex.Message}");
+            throw;
+        }
     }
 }
