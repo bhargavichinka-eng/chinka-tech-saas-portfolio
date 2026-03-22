@@ -1,0 +1,36 @@
+# Node.js
+node_modules/
+.next/
+out/
+dist/
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+*.csproj.user
+
+# Environment files
+.env.local
+.env.production
+appsettings.Production.json
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.suo
+
+# Logs
+*.log
+logs/
+
+# Uploads (local dev)
+backend/PortfolioApi/wwwroot/uploads/
