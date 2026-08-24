@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { backendEnabled } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 export default function AdminLoginPage() {
@@ -15,12 +16,25 @@ export default function AdminLoginPage() {
     setError('');
     try {
       await login(email, password);
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid credentials. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (!backendEnabled) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Admin Panel Disabled</h1>
+          <p className="text-gray-600 mb-4">The dynamic backend is currently turned off for this static-first deployment.</p>
+          <p className="text-sm text-gray-500">To enable it, set <span className="font-mono bg-gray-100 px-2 py-1 rounded">NEXT_PUBLIC_BACKEND_ENABLED=true</span> and run the backend with <span className="font-mono bg-gray-100 px-2 py-1 rounded">BackendEnabled=true</span>.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">

@@ -70,14 +70,62 @@ saas-portfolio-platform/
 └── README.md
 ```
 
+## Static-first setup
+
+This project is configured to run as a static portfolio by default. The dynamic backend and database are intentionally kept available but disabled unless you explicitly enable them.
+
+For Azure Static Web Apps deployment, the frontend is built as a static export:
+
+```ts
+// frontend/next.config.ts
+const nextConfig: NextConfig = {
+  output: "export",
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
+};
+```
+
+Set the backend on only when you need admin routes, JWT auth, and database-backed forms:
+
+```bash
+# frontend/.env.local
+NEXT_PUBLIC_BACKEND_ENABLED=true
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+```json
+// backend/PortfolioApi/appsettings.Development.json
+{
+  "BackendEnabled": true
+}
+```
+
+You can also enable it at runtime with an environment variable:
+
+```bash
+set ENABLE_BACKEND=true
+```
+
 ## Quick Start
 
 ### Prerequisites
 - Node.js 20+
 - .NET SDK 10+
-- SQL Server (or Docker)
+- SQL Server only if backend is enabled
 
-### Option 1: Docker Compose (Recommended)
+### Option 1: Local static frontend workflow (default)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:3000
+
+### Option 2: Optional Docker setup (not required)
 
 ```bash
 git clone https://github.com/bhargavichinka-eng/chinka-tech-saas-portfolio
@@ -85,12 +133,9 @@ cd chinka-tech-saas-portfolio
 docker-compose up --build
 ```
 
-Access the app:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-- Swagger UI: http://localhost:5000/swagger
+This remains available for local testing, but it is no longer the default workflow.
 
-### Option 2: Manual Setup
+### Option 3: Manual Setup for dynamic backend
 
 **1. Database**
 ```bash

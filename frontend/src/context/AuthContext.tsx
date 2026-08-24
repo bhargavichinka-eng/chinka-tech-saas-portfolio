@@ -1,7 +1,7 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import api, { endpoints } from '@/lib/api';
+import api, { backendEnabled, endpoints } from '@/lib/api';
 
 interface AuthContextType {
   token: string | null;
@@ -22,6 +22,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (!backendEnabled) {
+      throw new Error('Admin backend is disabled. Enable it in the environment to use the dashboard.');
+    }
+
     const res = await api.post(endpoints.auth.login, { email, password });
     const { token: t } = res.data;
     localStorage.setItem('token', t);
